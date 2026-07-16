@@ -3,6 +3,7 @@ import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { is } from '@electron-toolkit/utils'
 import { createInventory } from './inventory'
+import { createDeterministicPlan } from './planner'
 import { getApprovedSession, approveFolder } from './session'
 import { IPC_CHANNELS } from '../shared/ipc'
 
@@ -81,6 +82,13 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC_CHANNELS.getInventory, async (event) => {
     requireTrustedMainFrame(event)
     return createInventory(getApprovedSession())
+  })
+
+  ipcMain.handle(IPC_CHANNELS.createPlan, async (event, objective: unknown) => {
+    requireTrustedMainFrame(event)
+    if (typeof objective !== 'string') throw new Error('A planning objective must be text.')
+    const inventory = await createInventory(getApprovedSession())
+    return createDeterministicPlan(objective, inventory)
   })
 
   createWindow()

@@ -1,6 +1,6 @@
 export {}
 
-import type { Inventory, SelectedFolder } from '../../shared/contracts'
+import type { Inventory, Plan, SelectedFolder } from '../../shared/contracts'
 
 declare global {
   interface Window {
@@ -8,6 +8,7 @@ declare global {
     steward: {
       pickFolder(): Promise<SelectedFolder | null>
       getInventory(): Promise<Inventory>
+      createPlan(objective: string): Promise<Plan>
     }
   }
 }

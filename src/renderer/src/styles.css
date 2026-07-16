@@ -64,6 +64,35 @@ h2 { font-size: 1.5rem; letter-spacing: -0.03em; margin: 0; }
 .file-row:last-child { border-bottom: 0; }
 .file-row span, .file-row time { color: #64748b; white-space: nowrap; }
 
+.planner-form { border-top: 1px solid #e2e8f0; margin-top: 1.5rem; padding-top: 1.5rem; }
+.planner-form label { display: block; font-weight: 650; margin-bottom: 0.6rem; }
+textarea { background: white; border: 1px solid #94a3b8; border-radius: 0.65rem; color: #0f172a; font: inherit; line-height: 1.5; padding: 0.75rem; resize: vertical; width: 100%; }
+textarea:focus-visible { outline: 3px solid #38bdf8; outline-offset: 2px; }
+.planner-actions { align-items: center; display: flex; gap: 1rem; justify-content: space-between; margin-top: 0.85rem; }
+.planner-actions p { color: #64748b; font-size: 0.875rem; margin: 0; }
+
+.plan-review { border-top: 1px solid #cbd5e1; margin-top: 2.5rem; padding-top: 2rem; }
+.plan-heading { align-items: start; display: flex; gap: 1rem; justify-content: space-between; }
+.plan-heading .eyebrow { margin-bottom: 0.5rem; }
+.approval-count { color: #475569; font-size: 0.875rem; font-weight: 650; margin: 0.25rem 0 0; white-space: nowrap; }
+.plan-summary { color: #475569; line-height: 1.5; }
+.batch-controls { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.25rem 0; }
+.action-card, .question-card { background: white; border: 1px solid #cbd5e1; border-radius: 0.75rem; margin-top: 0.8rem; padding: 1.1rem; }
+.action-card-header { align-items: start; display: flex; gap: 1rem; justify-content: space-between; }
+.action-type { color: #64748b; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; margin: 0 0 0.35rem; text-transform: uppercase; }
+h3 { font-size: 1.05rem; line-height: 1.35; margin: 0; overflow-wrap: anywhere; }
+.action-card > p, .question-card > p { line-height: 1.5; }
+.approval-toggle { align-items: center; cursor: pointer; display: flex; font-size: 0.875rem; font-weight: 650; gap: 0.45rem; white-space: nowrap; }
+.approval-toggle input { accent-color: #0f172a; height: 1rem; width: 1rem; }
+.action-detail, .question-choices { color: #64748b; font-size: 0.9rem; }
+.duplicate-groups { border-top: 1px solid #e2e8f0; margin-top: 1rem; padding-top: 0.25rem; }
+.duplicate-group { margin-top: 0.85rem; }
+.duplicate-group p { color: #92400e; font-size: 0.875rem; margin-bottom: 0.35rem; }
+.duplicate-group ul { margin: 0; padding-left: 1.25rem; }
+.duplicate-group li { margin: 0.3rem 0; overflow-wrap: anywhere; }
+.review-boundary { color: #64748b; font-size: 0.875rem; line-height: 1.5; margin: 1.25rem 0 0; }
+
 @media (max-width: 680px) {
   .file-row { align-items: start; grid-template-columns: 1fr; gap: 0.25rem; }
+  .planner-actions, .plan-heading, .action-card-header { align-items: stretch; flex-direction: column; }
 }
