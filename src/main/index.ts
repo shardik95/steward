@@ -1,11 +1,34 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { is } from '@electron-toolkit/utils'
+import { createInventory } from './inventory'
+import { getApprovedSession, approveFolder } from './session'
+import { IPC_CHANNELS } from '../shared/ipc'
 
-const PICK_FOLDER_CHANNEL = 'steward:pick-folder'
+let mainWindow: BrowserWindow | null = null
+
+function isTrustedRendererUrl(url: string): boolean {
+  if (is.dev && process.env.ELECTRON_RENDERER_URL) {
+    return new URL(url).origin === new URL(process.env.ELECTRON_RENDERER_URL).origin
+  }
+
+  return url === pathToFileURL(join(__dirname, '../renderer/index.html')).href
+}
+
+function requireTrustedMainFrame(event: Electron.IpcMainInvokeEvent): BrowserWindow {
+  if (
+    !mainWindow ||
+    event.sender !== mainWindow.webContents ||
+    event.senderFrame !== mainWindow.webContents.mainFrame
+  ) {
+    throw new Error('This request did not originate from Steward’s main window.')
+  }
+  return mainWindow
+}
 
 function createWindow(): void {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1100,
     height: 720,
     minWidth: 760,
@@ -20,11 +43,19 @@ function createWindow(): void {
     }
   })
 
-  mainWindow.on('ready-to-show', () => mainWindow.show())
+  mainWindow.on('ready-to-show', () => mainWindow?.show())
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    void shell.openExternal(url)
+    if (new URL(url).protocol === 'https:') void shell.openExternal(url)
     return { action: 'deny' }
+  })
+
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (!isTrustedRendererUrl(url)) event.preventDefault()
+  })
+
+  mainWindow.webContents.on('will-redirect', (event, url) => {
+    if (!isTrustedRendererUrl(url)) event.preventDefault()
   })
 
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
@@ -35,13 +66,21 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
-  ipcMain.handle(PICK_FOLDER_CHANNEL, async (): Promise<string | null> => {
+  ipcMain.handle(IPC_CHANNELS.pickFolder, async (event) => {
+    const ownerWindow = requireTrustedMainFrame(event)
     const result = await dialog.showOpenDialog({
+      parent: ownerWindow,
       title: 'Choose a folder',
       properties: ['openDirectory', 'createDirectory']
     })
 
-    return result.canceled ? null : result.filePaths[0] ?? null
+    if (result.canceled || !result.filePaths[0]) return null
+    return approveFolder(resolve(result.filePaths[0]))
+  })
+
+  ipcMain.handle(IPC_CHANNELS.getInventory, async (event) => {
+    requireTrustedMainFrame(event)
+    return createInventory(getApprovedSession())
   })
 
   createWindow()

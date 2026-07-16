@@ -8,7 +8,8 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@electron-toolkit/preload": "^3.0.1",
@@ -20,7 +21,8 @@
     "electron": "^41.7.1",
     "electron-vite": "^3.0.0",
     "typescript": "^5.7.2",
-    "vite": "^6.0.5"
+    "vite": "^6.0.5",
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "react": "^19.0.0",

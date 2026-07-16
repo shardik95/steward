@@ -44,6 +44,26 @@ button {
 
 button:hover { background: #334155; }
 button:focus-visible { outline: 3px solid #38bdf8; outline-offset: 3px; }
+button:disabled { cursor: wait; opacity: 0.68; }
 
 .selection { color: #475569; line-height: 1.5; margin-top: 1.5rem; overflow-wrap: anywhere; }
 code { color: #0f172a; }
+
+.error, .warning { color: #b91c1c; line-height: 1.5; margin-top: 1.25rem; }
+.warning { color: #a16207; }
+
+.inventory { border-top: 1px solid #cbd5e1; margin-top: 2.5rem; padding-top: 2rem; }
+.inventory-heading { align-items: start; display: flex; gap: 1rem; justify-content: space-between; }
+.inventory-heading .eyebrow { margin-bottom: 0.5rem; }
+h2 { font-size: 1.5rem; letter-spacing: -0.03em; margin: 0; }
+.secondary { background: transparent; border: 1px solid #94a3b8; color: #0f172a; }
+.secondary:hover { background: #e2e8f0; }
+.inventory-note { color: #64748b; line-height: 1.5; }
+.file-list { border: 1px solid #cbd5e1; border-radius: 0.65rem; max-height: 20rem; overflow: auto; }
+.file-row { align-items: center; border-bottom: 1px solid #e2e8f0; display: grid; font-size: 0.875rem; gap: 1rem; grid-template-columns: minmax(12rem, 1fr) auto auto; padding: 0.75rem 1rem; }
+.file-row:last-child { border-bottom: 0; }
+.file-row span, .file-row time { color: #64748b; white-space: nowrap; }
+
+@media (max-width: 680px) {
+  .file-row { align-items: start; grid-template-columns: 1fr; gap: 0.25rem; }
+}
