@@ -3,11 +3,14 @@ import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { is } from '@electron-toolkit/utils'
 import { createInventory } from './inventory'
+import { executeApprovedPlan, undoSuccessfulMoves } from './executor'
+import { ExecutionJournal } from './journal'
 import { createDeterministicPlan } from './planner'
 import { getApprovedSession, approveFolder } from './session'
 import { IPC_CHANNELS } from '../shared/ipc'
 
 let mainWindow: BrowserWindow | null = null
+const executionJournal = new ExecutionJournal()
 
 function isTrustedRendererUrl(url: string): boolean {
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
@@ -89,6 +92,16 @@ app.whenReady().then(() => {
     if (typeof objective !== 'string') throw new Error('A planning objective must be text.')
     const inventory = await createInventory(getApprovedSession())
     return createDeterministicPlan(objective, inventory)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.executePlan, async (event, plan: unknown, approvedActionIds: unknown) => {
+    requireTrustedMainFrame(event)
+    return executeApprovedPlan(getApprovedSession(), plan, approvedActionIds, executionJournal)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.undoMoves, async (event) => {
+    requireTrustedMainFrame(event)
+    return undoSuccessfulMoves(getApprovedSession(), executionJournal)
   })
 
   createWindow()

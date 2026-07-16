@@ -71,3 +71,28 @@ export type Plan = {
   actions: Action[]
   questions: PlanQuestion[]
 }
+
+export type ActionErrorCode =
+  | 'SOURCE_MISSING'
+  | 'DESTINATION_COLLISION'
+  | 'OUTSIDE_ROOT'
+  | 'SYMLINK'
+  | 'PERMISSION_DENIED'
+  | 'PLAN_STALE'
+  | 'DEPENDENCY_NOT_MET'
+  | 'INVALID_PLAN'
+
+export type ActionResult = {
+  actionId: string
+  status: 'succeeded' | 'failed' | 'skipped'
+  errorCode?: ActionErrorCode
+  userMessage: string
+  observedState: Record<string, unknown>
+}
+
+export type ExecutionOutcome = {
+  results: ActionResult[]
+  inventory: Inventory | null
+  canUndo: boolean
+  verificationError?: string
+}

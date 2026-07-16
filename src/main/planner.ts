@@ -17,6 +17,68 @@ export class PlanValidationError extends Error {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function parseStringArray(value: unknown, fieldName: string): string[] | undefined {
+  if (value === undefined) return undefined
+  if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
+    throw new PlanValidationError(`${fieldName} must be an array of strings.`)
+  }
+  return value
+}
+
+/** Parses untrusted IPC/LLM-shaped data before semantic validation. */
+export function parsePlan(value: unknown): Plan {
+  if (!isRecord(value) || typeof value.objective !== 'string' || typeof value.inventoryFingerprint !== 'string' ||
+    typeof value.summary !== 'string' || !Array.isArray(value.actions) || !Array.isArray(value.questions)) {
+    throw new PlanValidationError('Plan data does not match the expected schema.')
+  }
+
+  const actions: Action[] = value.actions.map((rawAction) => {
+    if (!isRecord(rawAction) || typeof rawAction.id !== 'string' || typeof rawAction.type !== 'string' || typeof rawAction.reason !== 'string') {
+      throw new PlanValidationError('An action does not match the expected schema.')
+    }
+    const dependsOn = parseStringArray(rawAction.dependsOn, 'dependsOn')
+    if (rawAction.type === 'create_folder' && typeof rawAction.relativePath === 'string') {
+      return { id: rawAction.id, type: 'create_folder', relativePath: rawAction.relativePath, reason: rawAction.reason, ...(dependsOn ? { dependsOn } : {}) }
+    }
+    if (rawAction.type === 'move_file' && typeof rawAction.sourceRelativePath === 'string' && typeof rawAction.destinationDirectoryRelativePath === 'string') {
+      return {
+        id: rawAction.id,
+        type: 'move_file',
+        sourceRelativePath: rawAction.sourceRelativePath,
+        destinationDirectoryRelativePath: rawAction.destinationDirectoryRelativePath,
+        reason: rawAction.reason,
+        ...(dependsOn ? { dependsOn } : {})
+      }
+    }
+    if (rawAction.type === 'flag_duplicate_candidates' && rawAction.requiresUserDecision === true && Array.isArray(rawAction.candidateGroups)) {
+      const candidateGroups = rawAction.candidateGroups.map((rawGroup) => {
+        if (!isRecord(rawGroup) || !Array.isArray(rawGroup.fileRelativePaths) || rawGroup.fileRelativePaths.some((path) => typeof path !== 'string') ||
+          (rawGroup.confidence !== 'exact' && rawGroup.confidence !== 'likely') ||
+          (rawGroup.evidence !== 'matching_sha256' && rawGroup.evidence !== 'similar_name_and_metadata')) {
+          throw new PlanValidationError('A duplicate candidate group does not match the expected schema.')
+        }
+        return { fileRelativePaths: rawGroup.fileRelativePaths, confidence: rawGroup.confidence, evidence: rawGroup.evidence }
+      })
+      return { id: rawAction.id, type: 'flag_duplicate_candidates', candidateGroups, reason: rawAction.reason, requiresUserDecision: true }
+    }
+    throw new PlanValidationError('An action type is not allowlisted.')
+  })
+
+  const questions = value.questions.map((rawQuestion) => {
+    if (!isRecord(rawQuestion) || typeof rawQuestion.id !== 'string' || typeof rawQuestion.prompt !== 'string') {
+      throw new PlanValidationError('A question does not match the expected schema.')
+    }
+    const choices = parseStringArray(rawQuestion.choices, 'choices')
+    return { id: rawQuestion.id, prompt: rawQuestion.prompt, ...(choices ? { choices } : {}) }
+  })
+
+  return { objective: value.objective, inventoryFingerprint: value.inventoryFingerprint, summary: value.summary, actions, questions }
+}
+
 function isSafeRelativePath(value: string): boolean {
   if (!value || value.includes('\\')) return false
   const normalized = posix.normalize(value)

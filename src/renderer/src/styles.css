@@ -91,8 +91,20 @@ h3 { font-size: 1.05rem; line-height: 1.35; margin: 0; overflow-wrap: anywhere; 
 .duplicate-group ul { margin: 0; padding-left: 1.25rem; }
 .duplicate-group li { margin: 0.3rem 0; overflow-wrap: anywhere; }
 .review-boundary { color: #64748b; font-size: 0.875rem; line-height: 1.5; margin: 1.25rem 0 0; }
+.execute-controls { align-items: center; border-top: 1px solid #cbd5e1; display: flex; gap: 1rem; justify-content: space-between; margin-top: 1.5rem; padding-top: 1.5rem; }
+.execute-controls p { color: #64748b; font-size: 0.875rem; margin: 0; }
+.execution-timeline { border-top: 1px solid #cbd5e1; margin-top: 2.5rem; padding-top: 2rem; }
+.timeline-list { list-style: none; margin: 1.25rem 0 0; padding: 0; }
+.timeline-item { align-items: baseline; border-bottom: 1px solid #e2e8f0; display: grid; gap: 0.75rem; grid-template-columns: 5.75rem 1fr auto; padding: 0.75rem 0; }
+.timeline-item strong { font-size: 0.8rem; text-transform: uppercase; }
+.timeline-item.succeeded strong { color: #15803d; }
+.timeline-item.failed strong { color: #b91c1c; }
+.timeline-item.skipped strong { color: #64748b; }
+.timeline-item span { line-height: 1.4; }
+.timeline-item code { color: #b91c1c; font-size: 0.75rem; }
 
 @media (max-width: 680px) {
   .file-row { align-items: start; grid-template-columns: 1fr; gap: 0.25rem; }
-  .planner-actions, .plan-heading, .action-card-header { align-items: stretch; flex-direction: column; }
+  .planner-actions, .plan-heading, .action-card-header, .execute-controls { align-items: stretch; flex-direction: column; }
+  .timeline-item { grid-template-columns: 1fr; gap: 0.25rem; }
 }

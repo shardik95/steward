@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react'
-import type { Inventory, Plan, SelectedFolder } from '../../shared/contracts'
+import type { ExecutionOutcome, Inventory, Plan, SelectedFolder } from '../../shared/contracts'
+import ExecutionTimeline from './ExecutionTimeline'
 import PlanReview from './PlanReview'
 
 function App(): JSX.Element {
@@ -8,8 +9,11 @@ function App(): JSX.Element {
   const [objective, setObjective] = useState('Put invoices in Finance, archive installers, and flag possible duplicate files.')
   const [plan, setPlan] = useState<Plan | null>(null)
   const [approvals, setApprovals] = useState<Record<string, boolean>>({})
+  const [outcome, setOutcome] = useState<ExecutionOutcome | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isPlanning, setIsPlanning] = useState(false)
+  const [isExecuting, setIsExecuting] = useState(false)
+  const [isUndoing, setIsUndoing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function loadInventory(): Promise<void> {
@@ -17,6 +21,7 @@ function App(): JSX.Element {
     setError(null)
     setPlan(null)
     setApprovals({})
+    setOutcome(null)
     try {
       setInventory(await window.steward.getInventory())
     } catch {
@@ -35,6 +40,7 @@ function App(): JSX.Element {
       setInventory(null)
       setPlan(null)
       setApprovals({})
+      setOutcome(null)
       await loadInventory()
     } catch {
       setError('Steward could not approve this folder. Try choosing a different folder.')
@@ -64,6 +70,38 @@ function App(): JSX.Element {
 
   function toggleApproval(actionId: string): void {
     setApprovals((current) => ({ ...current, [actionId]: !current[actionId] }))
+  }
+
+  async function executePlan(): Promise<void> {
+    if (!plan) return
+    setIsExecuting(true)
+    setError(null)
+    try {
+      const approvedActionIds = plan.actions.filter((action) => approvals[action.id]).map((action) => action.id)
+      const nextOutcome = await window.steward.executePlan(plan, approvedActionIds)
+      setOutcome(nextOutcome)
+      if (nextOutcome.inventory) setInventory(nextOutcome.inventory)
+      setPlan(null)
+      setApprovals({})
+    } catch {
+      setError('Steward could not start this batch safely. No additional files were changed.')
+    } finally {
+      setIsExecuting(false)
+    }
+  }
+
+  async function undoMoves(): Promise<void> {
+    setIsUndoing(true)
+    setError(null)
+    try {
+      const nextOutcome = await window.steward.undoMoves()
+      setOutcome(nextOutcome)
+      if (nextOutcome.inventory) setInventory(nextOutcome.inventory)
+    } catch {
+      setError('Steward could not undo the recorded moves safely.')
+    } finally {
+      setIsUndoing(false)
+    }
   }
 
   return (
@@ -126,7 +164,18 @@ function App(): JSX.Element {
             </form>
           </section>
         )}
-        {plan && <PlanReview plan={plan} approvals={approvals} onSetAll={setAllApprovals} onToggle={toggleApproval} />}
+        {plan && (
+          <>
+            <PlanReview plan={plan} approvals={approvals} onSetAll={setAllApprovals} onToggle={toggleApproval} />
+            <div className="execute-controls">
+              <button type="button" onClick={executePlan} disabled={isExecuting || !plan.actions.some((action) => approvals[action.id])}>
+                {isExecuting ? 'Executing approved actions…' : 'Execute approved actions'}
+              </button>
+              <p>Only explicitly approved create-folder and move-file actions can run.</p>
+            </div>
+          </>
+        )}
+        {outcome && <ExecutionTimeline outcome={outcome} isUndoing={isUndoing} onUndo={undoMoves} />}
       </section>
     </main>
   )

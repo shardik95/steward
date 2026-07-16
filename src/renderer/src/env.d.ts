@@ -1,6 +1,6 @@
 export {}
 
-import type { Inventory, Plan, SelectedFolder } from '../../shared/contracts'
+import type { ExecutionOutcome, Inventory, Plan, SelectedFolder } from '../../shared/contracts'
 
 declare global {
   interface Window {
@@ -9,6 +9,8 @@ declare global {
       pickFolder(): Promise<SelectedFolder | null>
       getInventory(): Promise<Inventory>
       createPlan(objective: string): Promise<Plan>
+      executePlan(plan: Plan, approvedActionIds: string[]): Promise<ExecutionOutcome>
+      undoMoves(): Promise<ExecutionOutcome>
     }
   }
 }

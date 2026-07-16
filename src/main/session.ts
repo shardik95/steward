@@ -4,7 +4,7 @@ import { basename, resolve } from 'node:path'
 import type { SelectedFolder } from '../shared/contracts'
 import { directoryIdentity, type DirectoryIdentity, PathPolicyError } from './path-policy'
 
-type ApprovedFolderSession = {
+export type ApprovedFolderSession = {
   rootPath: string
   sessionId: string
   rootIdentity: DirectoryIdentity

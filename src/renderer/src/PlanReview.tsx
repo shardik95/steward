@@ -80,7 +80,7 @@ export default function PlanReview({ approvals, onSetAll, onToggle, plan }: Plan
         <ActionCard key={action.id} action={action} approved={approvals[action.id] ?? false} onToggle={() => onToggle(action.id)} />
       ))}
       {plan.questions.map((question) => <QuestionCard key={question.id} {...question} />)}
-      <p className="review-boundary">Review only: Step 3 cannot create folders, move files, or remove anything.</p>
+      <p className="review-boundary">Nothing runs until you choose Execute approved actions. Steward never deletes or overwrites files.</p>
     </section>
   )
 }
